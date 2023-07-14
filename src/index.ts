@@ -1,9 +1,9 @@
 import { Func, Generator } from './types';
 
 const generateMemoizeKey = <A extends unknown[]>(
-  A: A,
+  args: A,
   generator?: Generator<A>
-) => generator?.(A) || JSON.stringify(A);
+) => generator?.(args) || JSON.stringify(args);
 
 export const memoize = <A extends unknown[], R extends unknown>(
   fn: Func<A, R>,
@@ -11,10 +11,10 @@ export const memoize = <A extends unknown[], R extends unknown>(
 ): Func<A, R> => {
   const cache: Record<string, R> = {};
 
-  return (...A: A) => {
-    const serialized = generateMemoizeKey(A, generator);
+  return (...args: A) => {
+    const serialized = generateMemoizeKey(args, generator);
     if (!(serialized in cache)) {
-      cache[serialized] = fn?.(...A);
+      cache[serialized] = fn?.(...args);
     }
     return cache[serialized];
   };
