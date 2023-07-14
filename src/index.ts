@@ -1,25 +1,21 @@
-export const sum = (a: number, b: number) => {
-  if ('development' === process.env.NODE_ENV) {
-    console.log('boop');
-  }
-  return a + b;
-};
+import { Func, Generator } from "./types";
 
-type Generator = (args: unknown) => string
+const generateMemoizeKey = <A extends unknown[]>(A: A, generator?: Generator<A>) =>
+  generator?.(A) || JSON.stringify(A)
 
-const generateMemoizeKey = (args: unknown, generator?: (args: unknown) => string) =>
-  generator?.(args) || JSON.stringify(args)
+export const memoize = <A extends unknown[], R extends unknown>(
+  fn: Func<A, R>,
+  generator?: Generator<A>
+): Func<A, R> => {
+  const cache: Record<string, R> = {};
 
-export const memoize = <F extends (...args: any) => unknown>(fn: F, generator?: Generator): F => {
-  const cache: Record<string, unknown> = {};
-
-  return ((...args: unknown[]) => {
-    const serialized = generateMemoizeKey(args, generator);
-    if (!cache[serialized]) {
-      cache[serialized] = fn?.(...args);
+  return ((...A: A) => {
+    const serialized = generateMemoizeKey(A, generator);
+    if (!(serialized in cache)) {
+      cache[serialized] = fn?.(...A);
     }
     return cache[serialized];
-  }) as F;
+  });
 };
 
 export default memoize;
